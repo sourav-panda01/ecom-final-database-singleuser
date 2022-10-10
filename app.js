@@ -10,12 +10,18 @@ const User = require('./models/user');
 const Cart = require('./models/cart');
 const CartItem = require('./models/cart-item');
 
+const Order = require('./models/order');
+const OrderItem = require('./models/order-item');
+
 const app = express();
 app.use(cors())
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
 const productRoutes = require('./routes/product');
+const cartRoutes = require('./routes/cart');
+const orderRoutes = require('./routes/order');
+
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -30,18 +36,24 @@ app.use((req, res, next) => {
 });
 
 app.use(productRoutes);
-
+app.use(cartRoutes);
+app.use(orderRoutes)
 app.use(errorController.get404);
 
 Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
 User.hasMany(Product);
 User.hasOne(Cart);
 Cart.belongsTo(User);
+Order.belongsTo(User);
 Cart.belongsToMany(Product, { through: CartItem });
 Product.belongsToMany(Cart, { through: CartItem });
+User.hasMany(Order);
+Order.belongsToMany(Product, {through : OrderItem});
+Product.belongsToMany(Order, {through : OrderItem});
+
 
 sequelize
-  // .sync({ force: true })
+   //.sync({ force: true })
   .sync()
   .then(result => {
     return User.findByPk(1);
